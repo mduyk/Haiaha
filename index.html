@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DELTA SHOP - V2</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --primary: #00f2ff; --bg: #0d0d16; --card: #161625; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #333; width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: var(--primary); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-login { background: var(--primary); color: #000; }
+        .btn-reg { background: #333; color: #fff; border: 1px solid var(--primary); }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        .hidden { display: none; }
+        .balance-card { background: #000; padding: 20px; border-radius: 15px; margin: 20px 0; border: 1px dashed var(--primary); }
+        .balance-amount { font-size: 32px; color: #ffcc00; font-weight: bold; }
+        .qr-area img { width: 100%; max-width: 200px; border-radius: 10px; background: white; padding: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="auth-form">
+            <h2>DELTA SHOP</h2>
+            <input type="text" id="username" placeholder="Tên tài khoản...">
+            <input type="password" id="password" placeholder="Mật khẩu...">
+            <div class="btn-group">
+                <button class="btn-login" onclick="login()">ĐĂNG NHẬP</button>
+                <button class="btn-reg" onclick="register()">ĐĂNG KÝ</button>
+            </div>
+        </div>
+
+        <div id="shop-ui" class="hidden">
+            <h3 id="display-name">Chào User</h3>
+            <div class="balance-card">
+                <div style="font-size: 14px; color: #888;">SỐ DƯ CỦA ÔNG</div>
+                <div class="balance-amount" id="balance">0đ</div>
+            </div>
+            <div class="qr-area">
+                <p style="font-size: 13px;">QUÉT MÃ NÀY ĐỂ NẠP</p>
+                <img id="qr-code" src="">
+                <p id="memo-text" style="color: var(--primary); font-size: 14px; margin-top: 10px;"></p>
+            </div>
+            <button style="background:#ff4444; color:white; margin-top:20px;" onclick="logout()">ĐĂNG XUẤT</button>
+        </div>
+    </div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://shopctv-61f96-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Tự động vào nếu đã login
+    let saved = localStorage.getItem('loggedUser');
+    if (saved) showShop(saved);
+
+    // HÀM ĐĂNG KÝ
+    function register() {
+        let u = document.getElementById('username').value.trim().toLowerCase();
+        let p = document.getElementById('password').value.trim();
+        if (
